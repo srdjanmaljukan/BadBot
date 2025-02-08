@@ -9,6 +9,7 @@
 #include "InputAction.h"
 #include "Components/InputComponent.h"
 #include "EnhancedInputComponent.h"
+#include "BlasterBeam/BlasterBeam.h"
 
 ABotPawn::ABotPawn()
 {
@@ -74,34 +75,27 @@ void ABotPawn::Look(const FInputActionValue& Value)
 void ABotPawn::Fire(const FInputActionValue& Value)
 {
 	// Add Flip Flop logic to toggle between firing and not firing
-	bool PlaceHolder = false;
 
 	if (Value.Get<bool>())
 	{
-		FireRifle(PlaceHolder);
+		UWorld* World = GetWorld();
+		if (!World) return;
+
+		FVector TraceStartLocation = ViewCamera->GetComponentLocation();
+		TraceEndLocation = TraceStartLocation + (ViewCamera->GetForwardVector() * TraceDistance);
+
+		FHitResult HitResult;
+		World->LineTraceSingleByChannel(HitResult, TraceStartLocation, TraceEndLocation, ECollisionChannel::ECC_Visibility);
+
+		if (HitResult.bBlockingHit)
+		{
+			TraceEndLocation = HitResult.ImpactPoint;
+		}
+
+		FVector SpawnLocation = BotMesh->GetSocketLocation(SocketName);
+
+		World->SpawnActor(BlasterBeam);
 	}
-}
-
-void ABotPawn::FireRifle(bool IsLeftRifle)
-{
-	
-}
-
-FTransform ABotPawn::TraceForSpawnTranform(bool IsLeftRifle)
-{
-	const FVector TraceEndLocation = RifleTrace();
-
-	return GetSpawnTransform(TraceEndLocation, IsLeftRifle);
-}
-
-FVector ABotPawn::RifleTrace()
-{
-	return FVector();
-}
-
-FTransform ABotPawn::GetSpawnTransform(FVector TraceEnd, bool IsLeftRifle)
-{
-	return FTransform();
 }
 
 void ABotPawn::Tick(float DeltaTime)
@@ -118,5 +112,6 @@ void ABotPawn::SetupPlayerInputComponent(UInputComponent* PlayerInputComponent)
 
 	EnhancedInputComponent->BindAction(MoveAction, ETriggerEvent::Triggered, this, &ABotPawn::Move);
 	EnhancedInputComponent->BindAction(LookAction, ETriggerEvent::Triggered, this, &ABotPawn::Look);
+	EnhancedInputComponent->BindAction(FireAction, ETriggerEvent::Triggered, this, &ABotPawn::Fire);
 }
 

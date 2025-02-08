@@ -12,6 +12,7 @@ class UCameraComponent;
 class UFloatingPawnMovement;
 class UInputMappingContext;
 class UInputAction;
+class ABlasterBeam;
 
 UCLASS()
 class BADBOT_API ABotPawn : public APawn
@@ -32,11 +33,6 @@ protected:
 	void Move(const FInputActionValue& Value);
 	void Look(const FInputActionValue& Value);
 	void Fire(const FInputActionValue& Value);
-
-	void FireRifle(bool IsLeftRifle);
-	FTransform TraceForSpawnTranform(bool IsLeftRifle);
-	FVector RifleTrace();
-	FTransform GetSpawnTransform(FVector TraceEnd, bool IsLeftRifle);
 
 	UPROPERTY(BlueprintReadWrite, Category = "Combat")
 	float Health = 100.f;
@@ -65,6 +61,18 @@ protected:
 	UPROPERTY(EditAnywhere, BlueprintReadOnly, Category = "Input")
 	UInputAction* LookAction;
 
+	UPROPERTY(EditAnywhere, BlueprintReadOnly, Category = "Input")
+	UInputAction* FireAction;
+
 private:
+
+	UPROPERTY(EditAnywhere, Category = "Combat")
+	float TraceDistance = 5000.f;
+
+	UPROPERTY(EditAnywhere, Category = "Combat")
+	FVector TraceEndLocation;
+
+	UPROPERTY(EditAnywhere, Category = "Combat")
+	TSubclassOf<ABlasterBeam> BlasterBeam;
 
 };
