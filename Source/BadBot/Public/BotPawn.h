@@ -5,6 +5,7 @@
 #include "CoreMinimal.h"
 #include "GameFramework/Pawn.h"
 #include "InputActionValue.h"
+#include "Interfaces/Damageable.h"
 #include "BotPawn.generated.h"
 
 class USpringArmComponent;
@@ -13,9 +14,11 @@ class UFloatingPawnMovement;
 class UInputMappingContext;
 class UInputAction;
 class ABlasterBeam;
+class UNiagaraSystem;
+class USoundBase;
 
 UCLASS()
-class BADBOT_API ABotPawn : public APawn
+class BADBOT_API ABotPawn : public APawn, public IDamageable
 {
 	GENERATED_BODY()
 
@@ -27,6 +30,8 @@ public:
 	// Called to bind functionality to input
 	virtual void SetupPlayerInputComponent(class UInputComponent* PlayerInputComponent) override;
 
+	virtual void GetHurt_Implementation(float DamageAmount) override;
+
 protected:
 	virtual void BeginPlay() override;
 
@@ -34,37 +39,42 @@ protected:
 	void Look(const FInputActionValue& Value);
 	void Fire(const FInputActionValue& Value);
 
-	UPROPERTY(BlueprintReadWrite, Category = "Combat")
+	UPROPERTY(EditAnywhere, BlueprintReadWrite, Category = "Combat")
 	float Health = 100.f;
+
+	UPROPERTY(EditAnywhere, BlueprintReadWrite, Category = "Combat")
+	float MaxHealth = 100.f;
 
 	UPROPERTY(BlueprintReadWrite, Category = "Combat")
 	FName SocketName;
 
-	UPROPERTY(BlueprintReadOnly, VisibleAnywhere)
+	UPROPERTY(BlueprintReadWrite, VisibleAnywhere)
 	UStaticMeshComponent* BotMesh;
 
 	UPROPERTY(VisibleAnywhere)
 	USpringArmComponent* CameraBoom;
 
-	UPROPERTY(BlueprintReadOnly, VisibleAnywhere)
+	UPROPERTY(BlueprintReadWrite, VisibleAnywhere)
 	UCameraComponent* ViewCamera;
 
-	UPROPERTY(BlueprintReadOnly, VisibleAnywhere)
+	UPROPERTY(BlueprintReadWrite, VisibleAnywhere)
 	UFloatingPawnMovement* FloatingPawnMovement;
 
-	UPROPERTY(EditAnywhere, BlueprintReadOnly, Category = "Input")
+	UPROPERTY(EditAnywhere, BlueprintReadWrite, Category = "Input")
 	UInputMappingContext* InputMappingContext;
 
-	UPROPERTY(EditAnywhere, BlueprintReadOnly, Category = "Input")
+	UPROPERTY(EditAnywhere, BlueprintReadWrite, Category = "Input")
 	UInputAction* MoveAction;
 
-	UPROPERTY(EditAnywhere, BlueprintReadOnly, Category = "Input")
+	UPROPERTY(EditAnywhere, BlueprintReadWrite, Category = "Input")
 	UInputAction* LookAction;
 
-	UPROPERTY(EditAnywhere, BlueprintReadOnly, Category = "Input")
+	UPROPERTY(EditAnywhere, BlueprintReadWrite, Category = "Input")
 	UInputAction* FireAction;
 
 private:
+
+	FName GetSocketName(bool IsLeft);
 
 	UPROPERTY(EditAnywhere, Category = "Combat")
 	float TraceDistance = 5000.f;
@@ -74,5 +84,14 @@ private:
 
 	UPROPERTY(EditAnywhere, Category = "Combat")
 	TSubclassOf<ABlasterBeam> BlasterBeam;
+
+	UPROPERTY(EditAnywhere, Category = "Combat")
+	bool IsLeftRifle = true;
+
+	UPROPERTY(EditAnywhere, Category = "VFX")
+	UNiagaraSystem* BeamBurst;
+
+	UPROPERTY(EditAnywhere, Category = "Sound")
+	USoundBase* FireSound;
 
 };

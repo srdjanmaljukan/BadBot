@@ -10,10 +10,14 @@
 #include "Components/InputComponent.h"
 #include "EnhancedInputComponent.h"
 #include "BlasterBeam/BlasterBeam.h"
+#include "Kismet/KismetMathLibrary.h"
+#include "NiagaraSystem.h"
+#include "NiagaraFunctionLibrary.h"
+#include "Sound/SoundBase.h"
+#include "Kismet/GameplayStatics.h"
 
 ABotPawn::ABotPawn()
 {
- 	// Set this pawn to call Tick() every frame.  You can turn this off to improve performance if you don't need it.
 	PrimaryActorTick.bCanEverTick = true;
 
 	BotMesh = CreateDefaultSubobject<UStaticMeshComponent>(TEXT("BotMesh"));
@@ -74,8 +78,6 @@ void ABotPawn::Look(const FInputActionValue& Value)
 
 void ABotPawn::Fire(const FInputActionValue& Value)
 {
-	// Add Flip Flop logic to toggle between firing and not firing
-
 	if (Value.Get<bool>())
 	{
 		UWorld* World = GetWorld();
@@ -92,15 +94,41 @@ void ABotPawn::Fire(const FInputActionValue& Value)
 			TraceEndLocation = HitResult.ImpactPoint;
 		}
 
-		FVector SpawnLocation = BotMesh->GetSocketLocation(SocketName);
+		FTransform SocketTransform = BotMesh->GetSocketTransform(GetSocketName(IsLeftRifle));
+		FRotator LookAtRotation = UKismetMathLibrary::FindLookAtRotation(SocketTransform.GetLocation(), TraceEndLocation);
+		FTransform SpawnTransform = FTransform(LookAtRotation, SocketTransform.GetLocation());
 
-		World->SpawnActor(BlasterBeam);
+		if (BlasterBeam && BeamBurst && FireSound)
+		{
+			World->SpawnActor<ABlasterBeam>(BlasterBeam, SpawnTransform);
+			UNiagaraFunctionLibrary::SpawnSystemAtLocation(World, BeamBurst, SocketTransform.GetLocation(), SocketTransform.GetRotation().Rotator());
+			UGameplayStatics::PlaySoundAtLocation(World, FireSound, SocketTransform.GetLocation());
+		}
+
+		IsLeftRifle = !IsLeftRifle;
+	}
+}
+
+FName ABotPawn::GetSocketName(bool IsLeft)
+{
+	if (IsLeft)
+	{
+		return FName("Rifle_L");
+	}
+	else
+	{
+		return FName("Rifle_R");
 	}
 }
 
 void ABotPawn::Tick(float DeltaTime)
 {
 	Super::Tick(DeltaTime);
+
+	if (BotMesh)
+	{
+		BotMesh->SetWorldRotation(GetControlRotation());
+	}
 
 }
 
@@ -113,5 +141,18 @@ void ABotPawn::SetupPlayerInputComponent(UInputComponent* PlayerInputComponent)
 	EnhancedInputComponent->BindAction(MoveAction, ETriggerEvent::Triggered, this, &ABotPawn::Move);
 	EnhancedInputComponent->BindAction(LookAction, ETriggerEvent::Triggered, this, &ABotPawn::Look);
 	EnhancedInputComponent->BindAction(FireAction, ETriggerEvent::Triggered, this, &ABotPawn::Fire);
+}
+
+void ABotPawn::GetHurt_Implementation(float DamageAmount)
+{
+	Health = FMath::Clamp(Health - DamageAmount, 0.f, MaxHealth);
+	UE_LOG(LogTemp, Warning, TEXT("BotPawn got hurt! Health: %f"), Health);
+	if (Health <= 0.f)
+	{
+		if (APlayerController* PlayerController = Cast<APlayerController>(GetController()))
+		{
+			UKismetSystemLibrary::QuitGame(GetWorld(), PlayerController, EQuitPreference::Quit, false);
+		}
+	}
 }
 

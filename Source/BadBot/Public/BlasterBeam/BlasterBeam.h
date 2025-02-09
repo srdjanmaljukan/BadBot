@@ -5,7 +5,9 @@
 #include "GameFramework/Actor.h"
 #include "BlasterBeam.generated.h"
 
+class UStaticMeshComponent;
 class UProjectileMovementComponent;
+class UNiagaraSystem;
 
 UCLASS()
 class BADBOT_API ABlasterBeam : public AActor
@@ -20,11 +22,17 @@ public:
 protected:
 	virtual void BeginPlay() override;
 
-	UPROPERTY(VisibleAnywhere, BlueprintReadOnly, Category = "Components")
+	UPROPERTY(EditAnywhere, BlueprintReadWrite, Category = "Components")
 	UStaticMeshComponent* BeamMesh;
 
-	UPROPERTY(VisibleAnywhere, BlueprintReadOnly, Category = "Components")
+	UPROPERTY(EditAnywhere, BlueprintReadWrite, Category = "Components")
 	UProjectileMovementComponent* ProjectileMovement;
+
+	UFUNCTION()
+	void OnBlasterHit(UPrimitiveComponent* HitComponent, AActor* OtherActor, UPrimitiveComponent* OtherComp, FVector NormalImpulse, const FHitResult& Hit);
+
+	UPROPERTY(EditAnywhere, BlueprintReadWrite, Category = "VFX")
+	UNiagaraSystem* Explosion;
 
 private:	
 
