@@ -2,23 +2,44 @@
 
 
 #include "Bot/BotSpawner.h"
+#include "Components/BoxComponent.h"
+#include "Engine/TargetPoint.h"
+#include "Bot/Bot.h"
 
-// Sets default values
 ABotSpawner::ABotSpawner()
 {
- 	// Set this actor to call Tick() every frame.  You can turn this off to improve performance if you don't need it.
 	PrimaryActorTick.bCanEverTick = true;
+
+	BoxComponent = CreateDefaultSubobject<UBoxComponent>(TEXT("BoxComponent"));
+	SetRootComponent(BoxComponent);
 
 }
 
-// Called when the game starts or when spawned
 void ABotSpawner::BeginPlay()
 {
 	Super::BeginPlay();
 	
 }
 
-// Called every frame
+void ABotSpawner::NotifyActorBeginOverlap(AActor* OtherActor)
+{
+	Super::NotifyActorBeginOverlap(OtherActor);
+
+	UWorld* World = GetWorld();
+
+	if (SpawnPoints.Num() > 0 && World && BotClass)
+	{
+		for (const ATargetPoint* SpawnPoint : SpawnPoints)
+		{
+			FVector SpawnPointLocation = SpawnPoint->GetActorLocation();
+			World->SpawnActor<ABot>(BotClass, SpawnPointLocation, FRotator(0.f, 0.f, 0.f));
+		}
+
+		Destroy();
+			
+	}
+}
+
 void ABotSpawner::Tick(float DeltaTime)
 {
 	Super::Tick(DeltaTime);

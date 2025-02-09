@@ -54,7 +54,7 @@ void ABot::FireBlasterBeam()
 
 		if (BlasterBeam && BeamBurst && FireSound)
 		{
-			World->SpawnActor<ABlasterBeam>(BlasterBeam, SocketTransform);
+			World->SpawnActor<ABlasterBeam>(BlasterBeam, SpawnTransform);
 			UNiagaraFunctionLibrary::SpawnSystemAtLocation(World, BeamBurst, SocketLocation, SocketRotation);
 			UGameplayStatics::PlaySoundAtLocation(World, FireSound, SocketLocation);
 		}

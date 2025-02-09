@@ -6,21 +6,34 @@
 #include "GameFramework/Actor.h"
 #include "BotSpawner.generated.h"
 
+class UBoxComponent;
+class ATargetPoint;
+class ABot;
+
 UCLASS()
 class BADBOT_API ABotSpawner : public AActor
 {
 	GENERATED_BODY()
 	
 public:	
-	// Sets default values for this actor's properties
 	ABotSpawner();
 
-protected:
-	// Called when the game starts or when spawned
-	virtual void BeginPlay() override;
-
-public:	
-	// Called every frame
 	virtual void Tick(float DeltaTime) override;
 
+protected:
+	virtual void BeginPlay() override;
+
+	virtual void NotifyActorBeginOverlap(AActor* OtherActor) override;
+
+private:	
+
+	UPROPERTY(EditAnywhere, Category = "Components")
+	UBoxComponent* BoxComponent;
+
+	UPROPERTY(EditAnywhere, Category = "Spawning")
+	TArray<ATargetPoint*> SpawnPoints;
+
+	UPROPERTY(EditAnywhere, Category = "Spawning")
+	TSubclassOf<ABot> BotClass;
+	
 };
