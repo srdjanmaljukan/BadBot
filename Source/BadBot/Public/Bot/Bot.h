@@ -50,6 +50,12 @@ private:
 	TSubclassOf<ABlasterBeam> BlasterBeam;
 
 	UPROPERTY(EditAnywhere, Category = "Combat")
+	UNiagaraSystem* FireExplosion;
+
+	UPROPERTY(EditAnywhere, Category = "Combat")
+	USoundBase* ExplosionSound;
+
+	UPROPERTY(EditAnywhere, Category = "Combat")
 	UNiagaraSystem* BeamBurst;
 
 	UPROPERTY(EditAnywhere, Category = "Combat")

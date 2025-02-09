@@ -146,7 +146,6 @@ void ABotPawn::SetupPlayerInputComponent(UInputComponent* PlayerInputComponent)
 void ABotPawn::GetHurt_Implementation(float DamageAmount)
 {
 	Health = FMath::Clamp(Health - DamageAmount, 0.f, MaxHealth);
-	UE_LOG(LogTemp, Warning, TEXT("BotPawn got hurt! Health: %f"), Health);
 	if (Health <= 0.f)
 	{
 		if (APlayerController* PlayerController = Cast<APlayerController>(GetController()))

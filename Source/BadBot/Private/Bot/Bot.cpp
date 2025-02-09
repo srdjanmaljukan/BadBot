@@ -91,6 +91,16 @@ void ABot::Tick(float DeltaTime)
 
 void ABot::GetHurt_Implementation(float DamageAmount)
 {
-	UE_LOG(LogTemp, Warning, TEXT("Enemy got hurt!"));
+	Health = FMath::Clamp(Health - DamageAmount, 0.f, MaxHealth);
+	if (Health <= 0.f)
+	{
+		UWorld* World = GetWorld();
+		if (World && FireExplosion && ExplosionSound)
+		{
+			UNiagaraFunctionLibrary::SpawnSystemAtLocation(World, FireExplosion, GetActorLocation());
+			UGameplayStatics::PlaySoundAtLocation(World, ExplosionSound, GetActorLocation());
+		}
+		Destroy();
+	}
 }
 
